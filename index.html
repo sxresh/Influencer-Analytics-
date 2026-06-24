@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Influencer Analytics Dashboard | sxresh</title>
+<meta name="description" content="Interactive Influencer Analytics Dashboard built using Python, Power BI, Streamlit, Pandas, and Plotly to analyze influencer performance, engagement rates, and brand promotion insights." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple-50: #EEEDFE; --purple-200: #AFA9EC; --purple-400: #7F77DD; --purple-600: #534AB7; --purple-800: #3C3489;
+    --teal-50: #E1F5EE; --teal-200: #5DCAA5; --teal-600: #0F6E56; --teal-800: #085041;
+    --amber-50: #FAEEDA; --amber-400: #EF9F27; --amber-800: #633806;
+    --coral-50: #FAECE7; --coral-400: #F0997B; --coral-800: #4A1B0C;
+    --blue-50: #E6F1FB; --blue-200: #85B7EB; --blue-800: #042C53;
+    --gray-100: #D3D1C7; --gray-600: #5F5E5A;
+    --bg: #f9f9f8; --surface: #ffffff; --text: #1a1a1a; --muted: #6b6b68;
+    --border: rgba(0,0,0,0.1);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container { max-width: 760px; margin: 0 auto; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    border-radius: 20px;
+    padding: 3.5rem 3rem 3rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -80px; right: -80px;
+    width: 280px; height: 280px; border-radius: 50%;
+    background: rgba(127,119,221,0.18);
+  }
+  .hero::after {
+    content: ''; position: absolute; bottom: -50px; left: 20px;
+    width: 180px; height: 180px; border-radius: 50%;
+    background: rgba(29,158,117,0.1);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(127,119,221,0.2);
+    border: 1px solid rgba(175,169,236,0.35);
+    color: #AFA9EC;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    padding: 5px 14px; border-radius: 20px;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    position: relative; z-index: 1;
+  }
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.12;
+    margin-bottom: 1rem;
+    position: relative; z-index: 1;
+  }
+  .hero h1 em { font-style: normal; color: #7F77DD; }
+  .hero p {
+    color: rgba(255,255,255,0.62);
+    font-size: 15px; line-height: 1.75;
+    max-width: 540px;
+    margin-bottom: 2rem;
+    position: relative; z-index: 1;
+  }
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #7F77DD; color: #fff;
+    font-size: 14px; font-weight: 500;
+    padding: 11px 24px; border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:hover { background: #6A61CC; transform: translateY(-1px); }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.82);
+    font-size: 14px; font-weight: 500;
+    padding: 11px 24px; border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.13); transform: translateY(-1px); }
+
+  /* Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem;
+    text-align: center;
+  }
+  .stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: #7F77DD; }
+  .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* Section */
+  .section { margin-bottom: 1.5rem; }
+  .sec-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 17px; font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sec-dot { width: 8px; height: 8px; border-radius: 50%; background: #7F77DD; }
+
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    font-size: 12px; font-weight: 500;
+    padding: 5px 14px; border-radius: 20px;
+  }
+  .tag-purple { background: #EEEDFE; color: #3C3489; border: 1px solid #AFA9EC; }
+  .tag-teal   { background: #E1F5EE; color: #085041; border: 1px solid #5DCAA5; }
+  .tag-amber  { background: #FAEEDA; color: #633806; border: 1px solid #EF9F27; }
+  .tag-coral  { background: #FAECE7; color: #4A1B0C; border: 1px solid #F0997B; }
+  .tag-blue   { background: #E6F1FB; color: #042C53; border: 1px solid #85B7EB; }
+
+  /* Two col */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+  @media (max-width: 580px) { .two-col { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.3rem;
+  }
+
+  /* Feature grid */
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .feat {
+    background: #F4F3FF;
+    border-radius: 12px;
+    padding: 1rem;
+  }
+  .feat-icon { font-size: 22px; margin-bottom: 6px; }
+  .feat p { font-size: 13px; color: #3C3489; font-weight: 500; }
+
+  /* Insights */
+  .ins-list { list-style: none; }
+  .ins-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px; line-height: 1.55; color: var(--muted);
+  }
+  .ins-list li:last-child { border-bottom: none; }
+  .ins-dot { width: 22px; height: 22px; border-radius: 50%; background: #EEEDFE; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-size: 12px; }
+
+  /* Bars */
+  .bars { display: flex; flex-direction: column; gap: 12px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-lbl { font-size: 12px; color: var(--muted); width: 68px; flex-shrink: 0; }
+  .bar-bg { flex: 1; height: 8px; background: #F1EFE8; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-val { font-size: 12px; font-weight: 500; width: 34px; text-align: right; color: var(--text); flex-shrink: 0; }
+
+  /* Footer */
+  .footer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.3rem 1.6rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  .footer p { font-size: 13px; color: var(--muted); }
+  .footer-links { display: flex; gap: 18px; }
+  .footer-links a { font-size: 13px; font-weight: 500; color: #7F77DD; text-decoration: none; }
+  .footer-links a:hover { text-decoration: underline; }
+
+  svg.ico { width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="badge">📊 Data Analytics Project</div>
+    <h1>Influencer Analytics<br>for <em>Brand Promotions</em></h1>
+    <p>An interactive dashboard to identify high-performing influencers, evaluate engagement effectiveness, and estimate promotional revenue across niches — built with Python, Power BI &amp; Streamlit.</p>
+    <div class="hero-btns">
+      <a class="btn-primary" href="dashboard.html">
+    ▶ Live Dashboard
+    </a>
+      <a class="btn-ghost" href="https://github.com/sxresh/Influencer-Analytics-" target="_blank" rel="noopener">
+        ⌥ GitHub Repo
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num">5+</div><div class="stat-lbl">KPI Metrics</div></div>
+    <div class="stat"><div class="stat-num">4</div><div class="stat-lbl">Niches Analyzed</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-lbl">Visualization Tools</div></div>
+    <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">Data-Driven</div></div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-dot"></span> Tech stack</div>
+    <div class="tags">
+      <span class="tag tag-purple">🐍 Python</span>
+      <span class="tag tag-teal">🗂 Pandas</span>
+      <span class="tag tag-amber">📊 Plotly</span>
+      <span class="tag tag-coral">🌐 Streamlit</span>
+      <span class="tag tag-blue">📈 Power BI</span>
+      <span class="tag tag-purple">🔢 NumPy</span>
+      <span class="tag tag-teal">📉 Matplotlib</span>
+      <span class="tag tag-amber">🐙 GitHub</span>
+    </div>
+  </div>
+
+  <!-- Dashboard Features -->
+  <div class="section">
+    <div class="sec-title"><span class="sec-dot"></span> Dashboard features</div>
+    <div class="feature-grid">
+      <div class="feat"><div class="feat-icon">👥</div><p>Total Followers KPI</p></div>
+      <div class="feat"><div class="feat-icon">📊</div><p>Avg Engagement Rate</p></div>
+      <div class="feat"><div class="feat-icon">⭐</div><p>Influencer Score by Niche</p></div>
+      <div class="feat"><div class="feat-icon">💰</div><p>Revenue Opportunity</p></div>
+      <div class="feat"><div class="feat-icon">🔍</div><p>Niche Filter</p></div>
+      <div class="feat"><div class="feat-icon">📉</div><p>Followers vs Engagement</p></div>
+    </div>
+  </div>
+
+  <!-- Insights + Bars -->
+  <div class="two-col">
+    <div class="card">
+      <div class="sec-title" style="font-size:15px; margin-bottom:0.8rem"><span class="sec-dot"></span> Key insights</div>
+      <ul class="ins-list">
+        <li><span class="ins-dot">📈</span>Fitness influencers achieve the highest average influencer score</li>
+        <li><span class="ins-dot">❤️</span>Health niche shows strong promotional potential</li>
+        <li><span class="ins-dot">📉</span>Engagement rates decrease as follower counts grow</li>
+        <li><span class="ins-dot">💵</span>Fitness &amp; Health generate the highest expected revenue</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="sec-title" style="font-size:15px; margin-bottom:0.8rem"><span class="sec-dot"></span> Revenue by niche</div>
+      <div class="bars">
+        <div class="bar-row">
+          <span class="bar-lbl">Fitness</span>
+          <div class="bar-bg"><div class="bar-fill" style="width:92%; background:#7F77DD;"></div></div>
+          <span class="bar-val">92%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-lbl">Health</span>
+          <div class="bar-bg"><div class="bar-fill" style="width:80%; background:#1D9E75;"></div></div>
+          <span class="bar-val">80%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-lbl">Beauty</span>
+          <div class="bar-bg"><div class="bar-fill" style="width:67%; background:#EF9F27;"></div></div>
+          <span class="bar-val">67%</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-lbl">Tech</span>
+          <div class="bar-bg"><div class="bar-fill" style="width:45%; background:#D85A30;"></div></div>
+          <span class="bar-val">45%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Built by <strong>sxresh</strong> · Python · Power BI · Streamlit</p>
+    <div class="footer-links">
+      <a href="https://2t5dtdqesvuwwcqkhpdgrg.streamlit.app/" target="_blank" rel="noopener">▶ Live App</a>
+      <a href="https://github.com/sxresh/Influencer-Analytics-" target="_blank" rel="noopener">⌥ GitHub</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Influencer Analytics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:#f0f2f5;min-height:100vh;padding:20px}
+  .page{max-width:1100px;margin:0 auto}
+  .hdr{background:linear-gradient(135deg,#1a3a5c,#0f2540);border-radius:12px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .hdr h1{color:#fff;font-size:16px;font-weight:500}
+  .hdr span{color:rgba(255,255,255,.45);font-size:11px}
+  .main{display:grid;grid-template-columns:180px 1fr;gap:14px}
+  @media(max-width:700px){.main{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:1fr 1fr;gap:10px}}
+  .sidebar{display:flex;flex-direction:column;gap:12px}
+  .card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:14px}
+  .card h3{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+  .niche-opt{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;font-size:13px;color:#666;transition:color .15s}
+  .niche-opt input{accent-color:#7F77DD;width:14px;height:14px;cursor:pointer;flex-shrink:0}
+  .niche-opt.on{color:#1a1a1a;font-weight:500}
+  .niche-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .insight-box{flex:1}
+  .insight-box li{font-size:12px;color:#666;line-height:1.6;padding:5px 0 5px 12px;position:relative;border-bottom:1px solid rgba(0,0,0,.06)}
+  .insight-box li:last-child{border-bottom:none}
+  .insight-box li::before{content:"•";position:absolute;left:0;color:#7F77DD;font-weight:700}
+  .content{display:flex;flex-direction:column;gap:12px}
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:600px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:14px;text-align:center}
+  .kpi-lbl{font-size:11px;color:#888;margin-bottom:5px}
+  .kpi-val{font-size:22px;font-weight:600;color:#7F77DD}
+  .kpi-val.g{color:#1D9E75}
+  .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.chart-row{grid-template-columns:1fr}}
+  .chart-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px}
+  .chart-card.full{grid-column:1/-1}
+  .chart-title{font-size:12px;font-weight:500;color:#666;margin-bottom:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;font-size:11px;color:#666}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hdr">
+    <h1>Influencer Analytics for Brand Promotions Dashboard</h1>
+    <span>Python · Power BI · Streamlit · Plotly</span>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="card">
+        <h3>Niche Filter</h3>
+        <label class="niche-opt on"><input type="checkbox" value="Education" checked onchange="fc()"><span class="niche-dot" style="background:#378ADD"></span>Education</label>
+        <label class="niche-opt on"><input type="checkbox" value="Fashion" checked onchange="fc()"><span class="niche-dot" style="background:#D4537E"></span>Fashion</label>
+        <label class="niche-opt on"><input type="checkbox" value="Fitness" checked onchange="fc()"><span class="niche-dot" style="background:#7F77DD"></span>Fitness</label>
+        <label class="niche-opt on"><input type="checkbox" value="Health" checked onchange="fc()"><span class="niche-dot" style="background:#1D9E75"></span>Health</label>
+        <label class="niche-opt on"><input type="checkbox" value="Skincare" checked onchange="fc()"><span class="niche-dot" style="background:#EF9F27"></span>Skincare</label>
+        <label class="niche-opt on"><input type="checkbox" value="Technology" checked onchange="fc()"><span class="niche-dot" style="background:#D85A30"></span>Technology</label>
+      </div>
+      <div class="card insight-box">
+        <h3>Key Insights</h3>
+        <ul style="list-style:none;padding:0">
+          <li>Fitness influencers have the highest average influencer score.</li>
+          <li>Health influencers show strong promotion potential and revenue generation.</li>
+          <li>Engagement rate decreases as follower count rises.</li>
+          <li>Technology niche shows the lowest average influencer score.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-lbl">Avg Engagement Rate</div><div class="kpi-val" id="kpi-eng">1.35</div></div>
+        <div class="kpi"><div class="kpi-lbl">Avg Influencer Score</div><div class="kpi-val" id="kpi-score">1.12</div></div>
+        <div class="kpi"><div class="kpi-lbl">Expected Revenue</div><div class="kpi-val g" id="kpi-rev">390.23K</div></div>
+        <div class="kpi"><div class="kpi-lbl">Sum of Followers</div><div class="kpi-val g" id="kpi-fol">2M</div></div>
+      </div>
+
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-title">Expected Revenue by Niche</div>
+          <div style="position:relative;height:220px"><canvas id="revChart" role="img" aria-label="Bar chart of expected revenue by niche">Revenue by niche, Fitness highest.</canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Average Influencer Score by Niche</div>
+          <div style="position:relative;height:220px"><canvas id="scoreChart" role="img" aria-label="Horizontal bar of average influencer score by niche">Influencer score, Fitness highest.</canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-row">
+        <div class="chart-card full">
+          <div class="chart-title">Followers vs Engagement Rate</div>
+          <div class="legend" id="scatter-leg"></div>
+          <div style="position:relative;height:200px"><canvas id="scatterChart" role="img" aria-label="Scatter plot of followers vs engagement rate">Engagement decreases as followers increase.</canvas></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:10px 0;font-size:12px;color:#aaa">
+        Built by <strong style="color:#7F77DD">sxresh</strong> &nbsp;·&nbsp;
+        <a href="https://github.com/sxresh/Influencer-Analytics-" style="color:#7F77DD;text-decoration:none" target="_blank">GitHub</a> &nbsp;·&nbsp;
+        <a href="https://2t5dtdqesvuwwcqkhpdgrg.streamlit.app/" style="color:#1D9E75;text-decoration:none" target="_blank">Streamlit App</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const NICHES=['Education','Fashion','Fitness','Health','Skincare','Technology'];
+const COL={Education:'#378ADD',Fashion:'#D4537E',Fitness:'#7F77DD',Health:'#1D9E75',Skincare:'#EF9F27',Technology:'#D85A30'};
+const BASE={
+  Education:{rev:38000,score:1.05,eng:1.60,followers:280000},
+  Fashion:{rev:32000,score:0.92,eng:1.80,followers:420000},
+  Fitness:{rev:165000,score:1.85,eng:2.10,followers:380000},
+  Health:{rev:98000,score:1.62,eng:1.95,followers:310000},
+  Skincare:{rev:41000,score:1.38,eng:2.40,followers:240000},
+  Technology:{rev:16000,score:0.78,eng:0.95,followers:370000}
+};
+const SCAT={
+  Education:[{x:50000,y:5.8},{x:120000,y:3.2},{x:200000,y:2.1},{x:280000,y:1.6}],
+  Fashion:[{x:60000,y:5.2},{x:150000,y:3.8},{x:250000,y:2.4},{x:420000,y:1.8}],
+  Fitness:[{x:40000,y:6.1},{x:130000,y:4.2},{x:220000,y:3.1},{x:380000,y:2.1}],
+  Health:[{x:55000,y:5.5},{x:140000,y:3.9},{x:230000,y:2.8},{x:310000,y:1.95}],
+  Skincare:[{x:45000,y:6.3},{x:110000,y:4.5},{x:180000,y:3.3},{x:240000,y:2.4}],
+  Technology:[{x:70000,y:2.8},{x:160000,y:1.8},{x:260000,y:1.2},{x:370000,y:0.95}]
+};
+
+function getActive(){return Array.from(document.querySelectorAll('.niche-opt input:checked')).map(e=>e.value)}
+
+function kpiUpdate(a){
+  if(!a.length){['kpi-eng','kpi-score','kpi-rev','kpi-fol'].forEach(id=>document.getElementById(id).textContent='—');return}
+  document.getElementById('kpi-eng').textContent=(a.reduce((s,n)=>s+BASE[n].eng,0)/a.length).toFixed(2);
+  document.getElementById('kpi-score').textContent=(a.reduce((s,n)=>s+BASE[n].score,0)/a.length).toFixed(2);
+  const r=a.reduce((s,n)=>s+BASE[n].rev,0);
+  document.getElementById('kpi-rev').textContent=(r/1000).toFixed(2)+'K';
+  const f=a.reduce((s,n)=>s+BASE[n].followers,0);
+  document.getElementById('kpi-fol').textContent=f>=1000000?(f/1000000).toFixed(1)+'M':(f/1000).toFixed(0)+'K';
+}
+
+function legend(a){
+  document.getElementById('scatter-leg').innerHTML=a.map(n=>`<span><span class="leg-sq" style="background:${COL[n]}"></span>${n}</span>`).join('');
+}
+
+const gridColor='rgba(0,0,0,.06)';
+const tickStyle={font:{size:10},color:'#999'};
+
+const revC=new Chart(document.getElementById('revChart'),{
+  type:'bar',
+  data:{labels:NICHES,datasets:[{data:NICHES.map(n=>BASE[n].rev),backgroundColor:NICHES.map(n=>COL[n]),borderRadius:4,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+Math.round(c.raw/1000)+'K'}}},
+    scales:{x:{ticks:{...tickStyle,autoSkip:false,maxRotation:35},grid:{display:false}},y:{ticks:{...tickStyle,callback:v=>'$'+Math.round(v/1000)+'K'},grid:{color:gridColor}}}}
+});
+
+const scC=new Chart(document.getElementById('scoreChart'),{
+  type:'bar',
+  data:{labels:NICHES,datasets:[{data:NICHES.map(n=>BASE[n].score),backgroundColor:NICHES.map(n=>COL[n]),borderRadius:4,borderSkipped:false}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{ticks:tickStyle,grid:{color:gridColor}},y:{ticks:tickStyle,grid:{display:false}}}}
+});
+
+legend(NICHES);
+const sC=new Chart(document.getElementById('scatterChart'),{
+  type:'scatter',
+  data:{datasets:NICHES.map(n=>({label:n,data:SCAT[n],backgroundColor:COL[n],pointRadius:5,pointHoverRadius:7}))},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${(c.raw.x/1000).toFixed(0)}K followers, ${c.raw.y.toFixed(1)} eng`}}},
+    scales:{x:{title:{display:true,text:'Followers',font:{size:10},color:'#999'},ticks:{...tickStyle,callback:v=>v>=1000000?(v/1e6).toFixed(1)+'M':(v/1000).toFixed(0)+'K'},grid:{color:gridColor}},
+      y:{title:{display:true,text:'Avg Engagement Rate',font:{size:10},color:'#999'},ticks:tickStyle,grid:{color:gridColor},min:0,max:7}}}
+});
+
+kpiUpdate(NICHES);
+
+function fc(){
+  const a=getActive();
+  document.querySelectorAll('.niche-opt').forEach(el=>el.classList.toggle('on',el.querySelector('input').checked));
+  kpiUpdate(a);
+  revC.data.labels=a; revC.data.datasets[0].data=a.map(n=>BASE[n].rev); revC.data.datasets[0].backgroundColor=a.map(n=>COL[n]); revC.update();
+  scC.data.labels=a; scC.data.datasets[0].data=a.map(n=>BASE[n].score); scC.data.datasets[0].backgroundColor=a.map(n=>COL[n]); scC.update();
+  sC.data.datasets=a.map(n=>({label:n,data:SCAT[n],backgroundColor:COL[n],pointRadius:5,pointHoverRadius:7})); sC.update();
+  legend(a);
+}
+</script>
+</body>
+</html>
